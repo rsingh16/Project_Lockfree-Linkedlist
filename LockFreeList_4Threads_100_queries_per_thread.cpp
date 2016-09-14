@@ -23,6 +23,7 @@ typedef struct node
 	struct node * backlink;
 }node_lf;
 
+
 struct list
 {
 	node_lf * head;
