@@ -15,7 +15,7 @@
 #define setFlag(address) ((node_lf *)((uintptr_t)address | 1))
 #define getMark(address) ((int)((uintptr_t)address & 0x00000002) == 2 ?1:0)
 #define getFlag(address) ((int)((uintptr_t)address & 0x00000001))
-#define getNodeAddress(address) ((node_lf *)((uintptr_t)address & -4))
+#define getNodeAddress(address) ((node_lf *)((uintptr_t)address & 0xFFFFFFFC))
 typedef struct node
 {
 	int data;
@@ -77,7 +77,7 @@ void HelpMarked(node_lf * prev, node_lf * del_node)
 	node_lf * del = constructArgs(del_node,0,1);
 	node_lf * next_node = constructArgs(next,0,0);
 
-	__sync_val_compare_and_swap ((unsigned long long *)&(getNodeAddress(prev)->next), (unsigned long long)del, (unsigned long long)next_node);
+	__sync_val_compare_and_swap ((unsigned int *)&(getNodeAddress(prev)->next), (unsigned int)del, (unsigned int)next_node);
 
 	free(getNodeAddress(del_node));
 
@@ -120,8 +120,8 @@ void TryMark(node_lf * del_node)
 		node_lf * next_node = constructArgs(next,0,0);
 		node_lf * next_node1 = constructArgs(next,1,0);
 
-		result = (node_lf *)__sync_val_compare_and_swap((unsigned long long *)&(getNodeAddress(del_node)->next),
-														(unsigned long long)(next_node),(unsigned long long)(next_node1));
+		result = (node_lf *)__sync_val_compare_and_swap((unsigned int *)&(getNodeAddress(del_node)->next),
+														(unsigned int)(next_node),(unsigned int)(next_node1));
 
 		if(getMark(result) == 0 && getFlag(result) == 1)
 			HelpFlagged(del_node,result);
@@ -161,8 +161,8 @@ int insert(int k, node_lf * head)
 			node_lf * next_node = constructArgs(next,0,0);
 			node_lf * new_Node = constructArgs(newNode,0,0);
 
-			node_lf * result = (node_lf *)__sync_val_compare_and_swap((unsigned long long *)&(getNodeAddress(prev)->next),
-																		(unsigned long long)(next_node),(unsigned long long)(new_Node));
+			node_lf * result = (node_lf *)__sync_val_compare_and_swap((unsigned int *)&(getNodeAddress(prev)->next),
+																		(unsigned int)(next_node),(unsigned int)(new_Node));
 
 			if(result == next)// || next == NULL)
 			{
@@ -203,8 +203,8 @@ return_tf TryFlag(node_lf * prev, node_lf * target)
 		node_lf * target_node = constructArgs(target,0,0);
 		node_lf * target_node_new = constructArgs(target,0,1);
 
-		node_lf * result = (node_lf *)__sync_val_compare_and_swap((unsigned long long *)&(getNodeAddress(prev)->next),
-																	(unsigned long long)(target_node),(unsigned long long)(target_node_new));
+		node_lf * result = (node_lf *)__sync_val_compare_and_swap((unsigned int *)&(getNodeAddress(prev)->next),
+																	(unsigned int)(target_node),(unsigned int)(target_node_new));
 		if(result == target && getMark(result) == 0 && getFlag(result) == 0)
 		{
 			r.node = prev;
